@@ -1,12 +1,16 @@
 import requests
 import json
-from Codal import CODAL_MONTHLY
+from Codal import CODAL_MONTHLY,CODAL_DATETIME_FORMAT
 import pandas as pd
+import jdatetime
+
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
 }
 
-def raw_link_extractor(symbol:str,only_first_page:bool = 0,number:int=50)-> list:
+def raw_link_extractor(symbol:str,
+                       only_first_page:bool = 0,
+                       number:int=50) -> list:
     page = 1
     total_data  = []
     while len(total_data) < number:
@@ -43,3 +47,31 @@ def symbol_links_grabber(symbol:str,
                                            'SentDateTime',
                                            'PublishDateTime',
                                            'Url'])
+
+
+
+def links_to_file(df:pd.DataFrame):
+    last_link_date = jdatetime.datetime.strptime(df.iloc[0]["SentDateTime"],
+                                                 CODAL_DATETIME_FORMAT).strftime("%Y-%m-%d")
+    try:
+        pre_df = pd.read_csv(f'{df.iloc[0]["Symbol"]}.csv')
+        merged_df = pd.concat([pre_df,df]).drop_duplicates().reset_index(drop=True).sort_values(by="TracingNo",ascending=False)
+        merged_df.to_csv(f'{df.iloc[0]["Symbol"]}.csv',index=False)
+        print(f"file: {df.iloc[0]['Symbol']}.csv founded and updated")
+    except FileNotFoundError:
+        df.to_csv(f'{df.iloc[0]["Symbol"]}.csv',index=False)
+        print(f"file: {df.iloc[0]['Symbol']}.csv not founded so created")
+
+gir a
+def main():
+    with open("Symbols.txt",'r') as f:
+        for symbol in f.readlines():
+            df = symbol_links_grabber(symbol.strip())
+            if len(df)==0:
+                print(f"Some problem occured when scraping {symbol} data")
+                continue
+            data = links_to_file(df)
+    return 0
+
+if ( __name__ = "__main__" ):
+    main()
