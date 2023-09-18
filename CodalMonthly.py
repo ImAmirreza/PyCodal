@@ -3,6 +3,7 @@ import json
 from Codal import CODAL_MONTHLY,CODAL_DATETIME_FORMAT
 import pandas as pd
 import jdatetime
+import time
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
@@ -62,16 +63,17 @@ def links_to_file(df:pd.DataFrame):
         df.to_csv(f'{df.iloc[0]["Symbol"]}.csv',index=False)
         print(f"file: {df.iloc[0]['Symbol']}.csv not founded so created")
 
-gir a
+
 def main():
     with open("Symbols.txt",'r') as f:
         for symbol in f.readlines():
+            time.sleep(3)
             df = symbol_links_grabber(symbol.strip())
             if len(df)==0:
                 print(f"Some problem occured when scraping {symbol} data")
                 continue
             data = links_to_file(df)
-    return 0
 
-if ( __name__ = "__main__" ):
+
+if ( __name__ == "__main__" ):
     main()
