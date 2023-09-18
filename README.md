@@ -9,10 +9,15 @@ The main objective of this project is to scrape the Codal website using Python a
 To use this project, follow these steps:
 
 1 - Clone the repository to your local machine.
+
 2 - Install the required dependencies by running pip install -r requirements.txt.
+
 3 - Run the main script, codal_scraper.py, to initiate the scraping process.
+
 4 - Specify the desired companies or financial information to scrape within the script.
+
 5 - The scraped data will be processed and stored in the specified format (e.g., CSV, Excel, or database).
+
 Please note that web scraping may be subject to certain legal restrictions or terms of service specified by the Codal website. Ensure that you comply with the website's terms and conditions and use this project responsibly.
 
 ### Contribution
