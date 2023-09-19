@@ -10,6 +10,7 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from pathlib import Path
 from Codal import BASE_CODAL
+import os
 
 Path("Data/raw_json").mkdir(exist_ok=True,parents=True)
 raw_json_files_path = Path("Data/raw_json")
@@ -33,7 +34,7 @@ class Monthly_table:
 
     def read_from_web(self,link:str) -> dict:
         data = requests.get(BASE_CODAL + link,headers=HEADERS).text
-        title = BeautifulSoup(data,"html.parser").find(attrs={"id":"ctl00_txbSymbol"}).text
+        title = BeautifulSoup(data,"html.parser").find(attrs={"id":"ctl00_txbSymbol"}).text.replace("ي","ی")
             # Use regular expressions to find the 'datasource' variable
         match = re.search(r'var datasource = ({.*?});', data, re.DOTALL)
 
@@ -53,7 +54,7 @@ class Monthly_table:
             print(title +"-"+periodEndToDate+" saved")
         return datasource_str,title
         
-            
+     
     def data_converter(self,datasource:dict[str,any],title):
         data_dict={}
         for i in datasource["sheets"][0]["tables"][0]["cells"]:
@@ -103,7 +104,8 @@ class Monthly_table:
                 # print(i)
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.mablagh_foroosh = pd.concat([self.mablagh_foroosh,s])
-        data = pd.concat([self.vahed,self.name,self.tolid,self.foroosh,self.nerkh_foroosh,self.mablagh_foroosh],axis=1).dropna().reset_index(drop=True).rename(columns={0:"vahed",1:"esm",2:"tolid",3:"foroosh",4:"nerkh_foroosh",5:"mablagh_forosh"})
+        
+        data = pd.concat([self.vahed,self.name,self.tolid,self.foroosh,self.nerkh_foroosh,self.mablagh_foroosh],axis=1).dropna().rename(columns={0:"vahed",1:"esm",2:"tolid",3:"foroosh",4:"nerkh_foroosh",5:"mablagh_forosh"})
         periodEndToDate = datasource["periodEndToDate"].split("/")
         data["Year"] = periodEndToDate[0]
         data["Month"] = periodEndToDate[1]
@@ -111,26 +113,33 @@ class Monthly_table:
         data["nemad"] = title
         return data,data_dict
 
-  
-for file in Path("Data/links").glob("*.csv"):
-    obj = Monthly_table()
-    # df, data_dict = obj.data_converter(obj.read_from_web(i))
-    # total_data = pd.concat([total_data,df])
-    # obj.read_from_web(i)
-    # print(file.name.split(".")[0], list(map(lambda p: p.parts[-1],Path("Data/raw_json").glob("**/**"))))
-    # print()
-    if file.name.split(".")[0].replace("ی","ي") in list(map(lambda p: p.parts[-1],Path("Data/raw_json").glob("**/**"))):
-        print(file.name.split(".")[0]," founded")
-        continue
+def download_link_as_json():
 
-    for _,row in pd.read_csv(file).sort_values(by="SentDateTime").iterrows():
-        print(row["Url"])
-        try:
-            obj.read_from_web(row["Url"])
-        except:
-            pass
+    for file in Path("Data/links").glob("*.csv"):
+        obj = Monthly_table()
+        if file.name.split(".")[0].replace("ی","ي") in list(map(lambda p: p.parts[-1],Path("Data/raw_json").glob("**/**"))):
+            print(file.name.split(".")[0]," founded")
+            continue
+
+        for _,row in pd.read_csv(file).sort_values(by="SentDateTime").iterrows():
+            print(row["Url"])
+            try:
+                obj.read_from_web(row["Url"])
+            except:
+                pass
 
 
 
-# total_data.to_csv("kegohar.csv",index=False)
-
+def transform_json_to_csv():
+    for file in Path("Data/raw_json").glob("**/*"):
+        if not file.is_file():
+            continue
+        with open(file,"r") as f:
+            daatasource = json.load(f)
+            try:
+                obj = Monthly_table()
+                df, _ = obj.data_converter(daatasource,file.parts[-2])
+                total_data = pd.concat([total_data,df])
+            except ValueError:
+                print(f"somthing is wrong with {file}")
+    total_data.to_csv("TotalData.csv")
