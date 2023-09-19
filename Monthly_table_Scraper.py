@@ -46,7 +46,7 @@ class Monthly_table:
 
         datasource_str = json.loads(datasource_str)
         periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
-        with open(raw_json_files_path/f"{title} - {periodEndToDate}",'w+') as f:
+        with open(raw_json_files_path/title/f"{title} - {periodEndToDate}",'w+') as f:
             json.dump(datasource_str,f,indent=6)
             print(title +"-"+periodEndToDate+" saved")
         return datasource_str,title
@@ -115,7 +115,7 @@ for file in Path("Data/links").glob("*.csv"):
     # df, data_dict = obj.data_converter(obj.read_from_web(i))
     # total_data = pd.concat([total_data,df])
     # obj.read_from_web(i)
-    for _,row in pd.read_csv(file).iterrows():
+    for _,row in pd.read_csv(file).sort_values(by="SentDateTime").iterrows():
         print(row["Url"])
         obj.read_from_web(row["Url"])
 
