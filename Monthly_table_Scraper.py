@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 from Codal import BASE_CODAL
 
-raw_json_files_path = Path("Data/raw_json").mkdir(exist_ok=True,parents=True)
+Path("Data/raw_json").mkdir(exist_ok=True,parents=True)
 raw_json_files_path = Path("Data/raw_json")
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
@@ -42,10 +42,12 @@ class Monthly_table:
             datasource_str = datasource_str.replace("\'","\"")
         else:
             print("Unable to find 'datasource' variable")
+            raise FileNotFoundError
         # raw = datasource_str
 
         datasource_str = json.loads(datasource_str)
         periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
+        Path(f"Data/raw_json/{title}").mkdir(exist_ok=True,parents=True)
         with open(raw_json_files_path/title/f"{title} - {periodEndToDate}",'w+') as f:
             json.dump(datasource_str,f,indent=6)
             print(title +"-"+periodEndToDate+" saved")
@@ -115,9 +117,18 @@ for file in Path("Data/links").glob("*.csv"):
     # df, data_dict = obj.data_converter(obj.read_from_web(i))
     # total_data = pd.concat([total_data,df])
     # obj.read_from_web(i)
+    # print(file.name.split(".")[0], list(map(lambda p: p.parts[-1],Path("Data/raw_json").glob("**/**"))))
+    # print()
+    if file.name.split(".")[0].replace("ی","ي") in list(map(lambda p: p.parts[-1],Path("Data/raw_json").glob("**/**"))):
+        print(file.name.split(".")[0]," founded")
+        continue
+
     for _,row in pd.read_csv(file).sort_values(by="SentDateTime").iterrows():
         print(row["Url"])
-        obj.read_from_web(row["Url"])
+        try:
+            obj.read_from_web(row["Url"])
+        except:
+            pass
 
 
 
