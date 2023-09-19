@@ -106,14 +106,8 @@ class Monthly_table:
         data["nemad"] = title
         return data,data_dict
 
-links = [
-    "https://www.codal.ir/Reports/Decision.aspx?LetterSerial=vazmdt5QQQaQQQwLVevg9rkOhUBw%3d%3d&rt=0&let=58&ct=0&ft=-1",#05
-    "https://www.codal.ir/Reports/Decision.aspx?LetterSerial=oXjX9VpMyswNMzWOyI2GbA%3d%3d&rt=0&let=58&ct=0&ft=-1",#04
-    "https://www.codal.ir/Reports/Decision.aspx?LetterSerial=anqLb57XXyDhk%2b89AIQNmg%3d%3d&rt=0&let=58&ct=0&ft=-1",#03
-    "https://www.codal.ir/Reports/Decision.aspx?LetterSerial=J4N%2biLZOU8mo6Dj567XQfw%3d%3d&rt=0&let=58&ct=0&ft=-1",#02
-    "https://www.codal.ir/Reports/Decision.aspx?LetterSerial=T8wduL2V9gPbcXdQCAqq%2bg%3d%3d&rt=0&let=58&ct=0&ft=-1",#01
-]   
-for i in links:
+  
+for i in Path("Data/links/*.csv"):
     obj = Monthly_table()
     # df, data_dict = obj.data_converter(obj.read_from_web(i))
     # total_data = pd.concat([total_data,df])
