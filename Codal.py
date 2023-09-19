@@ -1,2 +1,3 @@
 CODAL_MONTHLY = ("https://search.codal.ir/api/search/v2/q?&Audited=true&AuditorRef=-1&Category=3&Childs=false&CompanyState=0&CompanyType=1&Consolidatable=true&IsNotAudited=false&Isic=132004&Length=-1&LetterType=58&Mains=true&NotAudited=true&NotConsolidatable=true&PageNumber={page}&Publisher=false&Symbol={symbol}&TracingNo=-1&search=true")
 CODAL_DATETIME_FORMAT = "%Y/%m/%d %H:%M:%S"
+BASE_CODAL = "https://codal.ir"

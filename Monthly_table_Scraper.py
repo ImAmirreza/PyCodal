@@ -9,7 +9,10 @@ from datetime import date
 import pandas as pd
 from bs4 import BeautifulSoup
 from pathlib import Path
+from Codal import BASE_CODAL
 
+raw_json_files_path = Path("Data/raw_json").mkdir(exist_ok=True,parents=True)
+raw_json_files_path = Path("Data/raw_json")
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
 }
@@ -29,8 +32,8 @@ class Monthly_table:
         self.mablagh_foroosh = pd.Series(dtype=float)
 
     def read_from_web(self,link:str) -> dict:
-        data = requests.get(link,headers=HEADERS).text
-        title = BeautifulSoup(data,"html.parse").find(attrs={"id":"ctl00_txbSymbol"}).text
+        data = requests.get(BASE_CODAL + link,headers=HEADERS).text
+        title = BeautifulSoup(data,"html.parser").find(attrs={"id":"ctl00_txbSymbol"}).text
             # Use regular expressions to find the 'datasource' variable
         match = re.search(r'var datasource = ({.*?});', data, re.DOTALL)
 
@@ -42,8 +45,8 @@ class Monthly_table:
         # raw = datasource_str
 
         datasource_str = json.loads(datasource_str)
-        periodEndToDate = datasource_str["periodEndToDate"]
-        with open(title +"-"+periodEndToDate,'w') as f:
+        periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
+        with open(raw_json_files_path/f"{title} - {periodEndToDate}",'w+') as f:
             json.dump(datasource_str,f,indent=6)
             print(title +"-"+periodEndToDate+" saved")
         return datasource_str,title
@@ -107,10 +110,16 @@ class Monthly_table:
         return data,data_dict
 
   
-for i in Path("Data/links/*.csv"):
+for file in Path("Data/links").glob("*.csv"):
     obj = Monthly_table()
     # df, data_dict = obj.data_converter(obj.read_from_web(i))
     # total_data = pd.concat([total_data,df])
-    obj.read_from_web(i)
+    # obj.read_from_web(i)
+    for _,row in pd.read_csv(file).iterrows():
+        print(row["Url"])
+        obj.read_from_web(row["Url"])
+
+
+
 # total_data.to_csv("kegohar.csv",index=False)
 
