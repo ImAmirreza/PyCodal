@@ -9,7 +9,7 @@ from pathlib import Path
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
 }
-p = Path("Data").mkdir(parents=True, exist_ok=True)
+p = Path("Data/links").mkdir(parents=True, exist_ok=True)
 def raw_link_extractor(symbol:str,
                        only_first_page:bool = 0,
                        number:int=50) -> list:
@@ -56,12 +56,12 @@ def links_to_file(df:pd.DataFrame):
     last_link_date = jdatetime.datetime.strptime(df.iloc[0]["SentDateTime"],
                                                  CODAL_DATETIME_FORMAT).strftime("%Y-%m-%d")
     try:
-        pre_df = pd.read_csv(Path("Data") / f'{df.iloc[0]["Symbol"]}.csv')
+        pre_df = pd.read_csv(Path("Data/links") / f'{df.iloc[0]["Symbol"]}.csv')
         merged_df = pd.concat([pre_df,df]).drop_duplicates().reset_index(drop=True).sort_values(by="TracingNo",ascending=False)
-        merged_df.to_csv(Path("Data") / f'{df.iloc[0]["Symbol"]}.csv',index=False)
+        merged_df.to_csv(Path("Data/links") / f'{df.iloc[0]["Symbol"]}.csv',index=False)
         print(f"file: {df.iloc[0]['Symbol']}.csv founded and updated")
     except FileNotFoundError:
-        df.to_csv(Path("Data") / f'{df.iloc[0]["Symbol"]}.csv',index=False)
+        df.to_csv(Path("Data/links") / f'{df.iloc[0]["Symbol"]}.csv',index=False)
         print(f"file: {df.iloc[0]['Symbol']}.csv not founded so created")
 
 
