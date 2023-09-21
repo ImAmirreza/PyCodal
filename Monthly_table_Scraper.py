@@ -141,7 +141,7 @@ def download_link_as_json(update:bool=False):
                         datasource_str,title = obj.read_from_web(row["Url"])
                         periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
                         Path(f"Data/raw_json/{title}").mkdir(exist_ok=True,parents=True)
-                        with open(raw_json_files_path/title/f"{title}-{periodEndToDate}-{datasource_str['tracingNo']}",'w+') as f:
+                        with open(raw_json_files_path/title/f"{title}-{periodEndToDate}-{datasource_str['tracingNo']}.json",'w+') as f:
                             json.dump(datasource_str,f,indent=6)
                             logging.info(title +"-"+periodEndToDate+" saved")
                     except Exception as e:
@@ -153,11 +153,32 @@ def download_link_as_json(update:bool=False):
                     datasource_str,title = obj.read_from_web(row["Url"])
                     periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
                     Path(f"Data/raw_json/{title}").mkdir(exist_ok=True,parents=True)
-                    with open(raw_json_files_path/title/f"{title}-{periodEndToDate}-{datasource_str['tracingNo']}",'w+') as f:
+                    with open(raw_json_files_path/title/f"{title}-{periodEndToDate}-{datasource_str['tracingNo']}.json",'w+') as f:
                         json.dump(datasource_str,f,indent=6)
                         logging.info(title +"-"+periodEndToDate+" saved")
                 except Exception as e:
                     logging.error("somthing is wrong 13",exc_info=True)
+
+
+def remove_duplicate_files(folder_path):
+    file_dict = {}
+    folder = Path(folder_path)
+    for file_path in folder.glob("*"):
+        *name, id_number = file_path.stem.split("-")
+        print(id_number,name)
+        name = "".join(name)
+        print(name)
+        if str(name) in file_dict:
+            existing_id = int(file_dict[name].stem.split("-")[-1])
+            current_id = int(id_number)
+            if current_id > existing_id:
+                file_dict[name].unlink()
+                file_dict[name] = file_path
+            else:
+                file_path.unlink()
+        else:
+            file_dict[str(name)] = file_path
+
 
 
 
@@ -178,5 +199,4 @@ def transform_json_to_csv():
 
 
 
-
-download_link_as_json()
+remove_duplicate_files("Data\\raw_json\\شدوص")
