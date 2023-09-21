@@ -1,7 +1,7 @@
 import json
 from typing import Dict, List, Optional, Set
 
-from Codal import config
+import Config as config
 
 
 ticker_name_to_index_mapping = None
