@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import requests.exceptions 
 import re
 import json
 import matplotlib.pyplot as plt
@@ -11,6 +12,8 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 from Codal import BASE_CODAL
 import os
+import logging
+logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 Path("Data/raw_json").mkdir(exist_ok=True,parents=True)
 raw_json_files_path = Path("Data/raw_json")
@@ -42,16 +45,12 @@ class Monthly_table:
             datasource_str = match.group(1)
             datasource_str = datasource_str.replace("\'","\"")
         else:
-            print("Unable to find 'datasource' variable")
-            raise FileNotFoundError
+            logging.error("Unable to find 'datasource' variable")
+            raise requests.exceptions.MissingSchema
         # raw = datasource_str
 
         datasource_str = json.loads(datasource_str)
-        periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
-        Path(f"Data/raw_json/{title}").mkdir(exist_ok=True,parents=True)
-        with open(raw_json_files_path/title/f"{title} - {periodEndToDate}",'w+') as f:
-            json.dump(datasource_str,f,indent=6)
-            print(title +"-"+periodEndToDate+" saved")
+        
         return datasource_str,title
         
      
@@ -59,49 +58,49 @@ class Monthly_table:
         data_dict={}
         for i in datasource["sheets"][0]["tables"][0]["cells"]:
             if (i["rowCode"] == 16) and (i["columnCode"] == 17):
-                # print("sum of sells in rials: ",i)
+                # logging.("sum of sells in rials: ",i)
                 try:
                     data_dict["ISP"]
                 except KeyError:
                     data_dict["ISP"] = {"value" : i["value"], "row":i["rowSequence"], "column":i["columnSequence"]}
                 
             if (i["rowCode"] == 5) and (i["columnCode"] == 15):
-                # print("internal sell(count): ",i)
+                # logging.("internal sell(count): ",i)
                 try:
                     data_dict["ISA"]
                 except KeyError:
                     data_dict["ISA"] = {"value" : i["value"], "row":i["rowSequence"], "column":i["columnSequence"]}
                 
             if (i["rowCode"] == 4) and (i["columnCode"] == 2) and i["value"] != "":
-                # print("vahed: ",i)
+                # logging.("vahed: ",i)
 
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.vahed = pd.concat([self.vahed,s])
 
 
             if (i["rowCode"] == 4) and (i["columnCode"] == 14) and i["value"] != "":
-                # print("kala: ",i)
+                # logging.("kala: ",i)
 
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.tolid = pd.concat([self.tolid,s])
             if (i["rowCode"] == 4) and (i["columnCode"] == 1) and i["value"] != "":
-                # print("tedad tolid",i)
+                # logging.("tedad tolid",i)
 
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.name = pd.concat([self.name,s])
             if (i["rowCode"] == 4) and (i["columnCode"] == 15) and i["value"] != "":
-                # print("tedad foroosh: ",i)
-                # print(i)
+                # logging.("tedad foroosh: ",i)
+                # logging.(i)
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.foroosh = pd.concat([self.foroosh,s])
             if (i["rowCode"] == 4) and (i["columnCode"] == 16) and i["value"] != "":
-                # print("nerkh_foroosh: ",i)
-                # print(i)
+                # logging.("nerkh_foroosh: ",i)
+                # logging.(i)
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.nerkh_foroosh = pd.concat([self.nerkh_foroosh,s])
             if (i["rowCode"] == 4) and (i["columnCode"] == 17) and i["value"] != "":
-                # print("nerkh_foroosh: ",i)
-                # print(i)
+                # logging.("nerkh_foroosh: ",i)
+                # logging.(i)
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.mablagh_foroosh = pd.concat([self.mablagh_foroosh,s])
         
@@ -113,20 +112,43 @@ class Monthly_table:
         data["nemad"] = title
         return data,data_dict
 
-def download_link_as_json():
+def download_link_as_json(update:bool=False):
 
     for file in Path("Data/links").glob("*.csv"):
         obj = Monthly_table()
         if file.name.split(".")[0].replace("ی","ي") in list(map(lambda p: p.parts[-1],Path("Data/raw_json").glob("**/**"))):
-            print(file.name.split(".")[0]," founded")
-            continue
-
-        for _,row in pd.read_csv(file).sort_values(by="SentDateTime").iterrows():
-            print(row["Url"])
+            logging.info(file.name.split(".")[0]," founded")
+            update = True
+        if update:
             try:
-                obj.read_from_web(row["Url"])
-            except:
-                pass
+                TrackNoLst = list(map(lambda p: int(p.parts[-1].split("-")[-1]),(Path("Data/raw_json")/file.name.split(".")[0]).glob("*")))
+            except Exception as e:
+                logging.error("Something is wrong in updating raw json files", exc_info=True)
+            logging.info(TrackNoLst)
+            for _,row in pd.read_csv(file).sort_values(by="SentDateTime" ,ascending=False).iterrows(): 
+                if not (row["TracingNo"] in TrackNoLst):
+                    logging.info("Updating:",row["TracingNo"])
+                    try:
+                        datasource_str,title = obj.read_from_web(row["Url"])
+                        periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
+                        Path(f"Data/raw_json/{title}").mkdir(exist_ok=True,parents=True)
+                        with open(raw_json_files_path/title/f"{title}-{periodEndToDate}-{datasource_str['tracingNo']}",'w+') as f:
+                            json.dump(datasource_str,f,indent=6)
+                            logging.info(title +"-"+periodEndToDate+" saved")
+                    except Exception as e:
+                        logging.error("Somthing is wrong 14",exc_info=True)
+        else:
+            for _,row in pd.read_csv(file).sort_values(by="SentDateTime").iterrows():
+                logging.info(row["Url"])
+                try:
+                    datasource_str,title = obj.read_from_web(row["Url"])
+                    periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
+                    Path(f"Data/raw_json/{title}").mkdir(exist_ok=True,parents=True)
+                    with open(raw_json_files_path/title/f"{title}-{periodEndToDate}-{datasource_str['tracingNo']}",'w+') as f:
+                        json.dump(datasource_str,f,indent=6)
+                        logging.info(title +"-"+periodEndToDate+" saved")
+                except Exception as e:
+                    logging.error("somthing is wrong 13",exc_info=True)
 
 
 
@@ -141,5 +163,11 @@ def transform_json_to_csv():
                 df, _ = obj.data_converter(daatasource,file.parts[-2])
                 total_data = pd.concat([total_data,df])
             except ValueError:
-                print(f"somthing is wrong with {file}")
+                logging.error(f"somthing is wrong with {file}",exc_info=True)
     total_data.to_csv("TotalData.csv")
+
+
+
+
+
+download_link_as_json()
