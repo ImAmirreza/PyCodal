@@ -1,5 +1,4 @@
 import requests
-from bs4 import BeautifulSoup
 import requests.exceptions 
 import re
 import json
@@ -13,14 +12,24 @@ from pathlib import Path
 from Codal import BASE_CODAL
 import os
 import logging
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
+import time
+def wait(secs):
+     def decorator(func):
+         def wrapper(*args, **kwargs):
+             time.sleep(secs)
+             return func(*args, **kwargs)
+         return wrapper
+     return decorator
+
+
+logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', level=logging.INFO)
 
 Path("Data/raw_json").mkdir(exist_ok=True,parents=True)
 raw_json_files_path = Path("Data/raw_json")
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
 }
-
+logging.info("started")
 total_data = pd.DataFrame()
 
 
@@ -111,7 +120,7 @@ class Monthly_table:
         data["Day"] = periodEndToDate[2]
         data["nemad"] = title
         return data,data_dict
-
+@wait(2)
 def download_link_as_json(update:bool=False):
 
     for file in Path("Data/links").glob("*.csv"):
