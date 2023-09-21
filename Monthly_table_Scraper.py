@@ -163,11 +163,9 @@ def download_link_as_json(update:bool=False):
 def remove_duplicate_files(folder_path):
     file_dict = {}
     folder = Path(folder_path)
-    for file_path in folder.glob("*"):
+    for file_path in folder.glob("*/*"):
         *name, id_number = file_path.stem.split("-")
-        print(id_number,name)
         name = "".join(name)
-        print(name)
         if str(name) in file_dict:
             existing_id = int(file_dict[name].stem.split("-")[-1])
             current_id = int(id_number)
@@ -199,4 +197,4 @@ def transform_json_to_csv():
 
 
 
-remove_duplicate_files("Data\\raw_json\\شدوص")
+remove_duplicate_files("Data\\raw_json")
