@@ -13,6 +13,34 @@ from Codal import BASE_CODAL
 import os
 import logging
 import time
+
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
+}
+
+# Set up logging configuration
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s - %(asctime)s - %(message)s',
+    handlers=[
+        logging.FileHandler('app.log'),  # Save logs to a file
+        logging.StreamHandler()  # Print logs to the console
+    ]
+)
+# Create a logger instance
+logger = logging.getLogger(__name__)
+
+# Create a directory for storing raw JSON files
+Path("Data/raw_json").mkdir(exist_ok=True,parents=True)
+raw_json_files_path = Path("Data/raw_json")
+
+
+
+
+logger.info("started")
+total_data = pd.DataFrame()
+
 def wait(secs):
      def decorator(func):
          def wrapper(*args, **kwargs):
@@ -20,21 +48,10 @@ def wait(secs):
              return func(*args, **kwargs)
          return wrapper
      return decorator
-
-
-logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s', level=logging.INFO)
-
-Path("Data/raw_json").mkdir(exist_ok=True,parents=True)
-raw_json_files_path = Path("Data/raw_json")
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36"
-}
-logging.info("started")
-total_data = pd.DataFrame()
-
-
 class Monthly_table:
-    
+    """
+    Represents a monthly table with data from a web page.
+    """
     
     def __init__(self):
         self.vahed = pd.Series(dtype=str)
@@ -44,7 +61,16 @@ class Monthly_table:
         self.nerkh_foroosh = pd.Series(dtype=float)
         self.mablagh_foroosh = pd.Series(dtype=float)
 
-    def read_from_web(self,link:str) -> dict:
+    def read_from_web(self,link:str) -> tuple:
+        """
+        Reads data from a web page and extracts the necessary information.
+
+        Args:
+            link (str): The URL of the web page.
+
+        Returns:
+            tuple: A tuple containing the extracted data and the title of the web page.
+        """
         data = requests.get(BASE_CODAL + link,headers=HEADERS).text
         title = BeautifulSoup(data,"html.parser").find(attrs={"id":"ctl00_txbSymbol"}).text.replace("ي","ی")
             # Use regular expressions to find the 'datasource' variable
@@ -54,7 +80,7 @@ class Monthly_table:
             datasource_str = match.group(1)
             datasource_str = datasource_str.replace("\'","\"")
         else:
-            logging.error("Unable to find 'datasource' variable")
+            logger.error("Unable to find 'datasource' variable")
             raise requests.exceptions.MissingSchema
         # raw = datasource_str
 
@@ -63,53 +89,63 @@ class Monthly_table:
         return datasource_str,title
         
      
-    def data_converter(self,datasource:dict[str,any],title):
+    def data_converter(self,datasource:dict[str,any],title:str)->tuple:
+        """
+        Converts the extracted data into a DataFrame.
+
+        Args:
+            datasource (dict): The extracted data from the web page.
+            title (str): The title of the web page.
+
+        Returns:
+            tuple: A tuple containing the converted DataFrame and additional data.
+        """
         data_dict={}
         for i in datasource["sheets"][0]["tables"][0]["cells"]:
             if (i["rowCode"] == 16) and (i["columnCode"] == 17):
-                # logging.("sum of sells in rials: ",i)
+                # logger.("sum of sells in rials: ",i)
                 try:
                     data_dict["ISP"]
                 except KeyError:
                     data_dict["ISP"] = {"value" : i["value"], "row":i["rowSequence"], "column":i["columnSequence"]}
                 
             if (i["rowCode"] == 5) and (i["columnCode"] == 15):
-                # logging.("internal sell(count): ",i)
+                # logger.("internal sell(count): ",i)
                 try:
                     data_dict["ISA"]
                 except KeyError:
                     data_dict["ISA"] = {"value" : i["value"], "row":i["rowSequence"], "column":i["columnSequence"]}
                 
             if (i["rowCode"] == 4) and (i["columnCode"] == 2) and i["value"] != "":
-                # logging.("vahed: ",i)
+                # logger.("vahed: ",i)
 
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.vahed = pd.concat([self.vahed,s])
 
 
             if (i["rowCode"] == 4) and (i["columnCode"] == 14) and i["value"] != "":
-                # logging.("kala: ",i)
+                # logger.("kala: ",i)
 
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.tolid = pd.concat([self.tolid,s])
             if (i["rowCode"] == 4) and (i["columnCode"] == 1) and i["value"] != "":
-                # logging.("tedad tolid",i)
+                # logger.("tedad tolid",i)
 
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.name = pd.concat([self.name,s])
             if (i["rowCode"] == 4) and (i["columnCode"] == 15) and i["value"] != "":
-                # logging.("tedad foroosh: ",i)
-                # logging.(i)
+                # logger.("tedad foroosh: ",i)
+                # logger.(i)
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.foroosh = pd.concat([self.foroosh,s])
             if (i["rowCode"] == 4) and (i["columnCode"] == 16) and i["value"] != "":
-                # logging.("nerkh_foroosh: ",i)
-                # logging.(i)
+                # logger.("nerkh_foroosh: ",i)
+                # logger.(i)
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.nerkh_foroosh = pd.concat([self.nerkh_foroosh,s])
             if (i["rowCode"] == 4) and (i["columnCode"] == 17) and i["value"] != "":
-                # logging.("nerkh_foroosh: ",i)
-                # logging.(i)
+                # logger.("nerkh_foroosh: ",i)
+                # logger.(i)
                 s = pd.Series([i["value"]],index=[i["rowSequence"]])
                 self.mablagh_foroosh = pd.concat([self.mablagh_foroosh,s])
         
@@ -126,41 +162,47 @@ def download_link_as_json(update:bool=False):
     for file in Path("Data/links").glob("*.csv"):
         obj = Monthly_table()
         if file.name.split(".")[0].replace("ی","ي") in list(map(lambda p: p.parts[-1],Path("Data/raw_json").glob("**/**"))):
-            logging.info(file.name.split(".")[0]," founded")
+            logger.info(file.name.split(".")[0]," founded")
             update = True
         if update:
             try:
                 TrackNoLst = list(map(lambda p: int(p.parts[-1].split("-")[-1]),(Path("Data/raw_json")/file.name.split(".")[0]).glob("*")))
             except Exception as e:
-                logging.error("Something is wrong in updating raw json files", exc_info=True)
-            logging.info(TrackNoLst)
+                logger.error("Something is wrong in updating raw json files", exc_info=True)
+            logger.info(TrackNoLst)
             for _,row in pd.read_csv(file).sort_values(by="SentDateTime" ,ascending=False).iterrows(): 
                 if not (row["TracingNo"] in TrackNoLst):
-                    logging.info("Updating:",row["TracingNo"])
+                    logger.info("Updating:",row["TracingNo"])
                     try:
                         datasource_str,title = obj.read_from_web(row["Url"])
                         periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
                         Path(f"Data/raw_json/{title}").mkdir(exist_ok=True,parents=True)
                         with open(raw_json_files_path/title/f"{title}-{periodEndToDate}-{datasource_str['tracingNo']}.json",'w+') as f:
                             json.dump(datasource_str,f,indent=6)
-                            logging.info(title +"-"+periodEndToDate+" saved")
+                            logger.info(title +"-"+periodEndToDate+" saved")
                     except Exception as e:
-                        logging.error("Somthing is wrong 14",exc_info=True)
+                        logger.error("Somthing is wrong 14",exc_info=True)
         else:
             for _,row in pd.read_csv(file).sort_values(by="SentDateTime").iterrows():
-                logging.info(row["Url"])
+                logger.info(row["Url"])
                 try:
                     datasource_str,title = obj.read_from_web(row["Url"])
                     periodEndToDate = datasource_str["periodEndToDate"].replace("/","-")
                     Path(f"Data/raw_json/{title}").mkdir(exist_ok=True,parents=True)
                     with open(raw_json_files_path/title/f"{title}-{periodEndToDate}-{datasource_str['tracingNo']}.json",'w+') as f:
                         json.dump(datasource_str,f,indent=6)
-                        logging.info(title +"-"+periodEndToDate+" saved")
+                        logger.info(title +"-"+periodEndToDate+" saved")
                 except Exception as e:
-                    logging.error("somthing is wrong 13",exc_info=True)
+                    logger.error("somthing is wrong 13",exc_info=True)
 
 
-def remove_duplicate_files(folder_path):
+def remove_duplicate_files(folder_path:str):
+    """
+    Removes duplicate json files which have same name but differrent ID
+
+    Args:
+        folder path: str   parent of json files
+    """
     file_dict = {}
     folder = Path(folder_path)
     for file_path in folder.glob("*/*"):
@@ -191,10 +233,10 @@ def transform_json_to_csv():
                 df, _ = obj.data_converter(daatasource,file.parts[-2])
                 total_data = pd.concat([total_data,df])
             except ValueError:
-                logging.error(f"somthing is wrong with {file}",exc_info=True)
+                logger.error(f"somthing is wrong with {file}",exc_info=True)
     total_data.to_csv("TotalData.csv")
 
 
 
 
-remove_duplicate_files("Data\\raw_json")
+# remove_duplicate_files("Data\\raw_json")
