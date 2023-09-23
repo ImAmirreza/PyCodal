@@ -65,8 +65,8 @@ def links_to_file(df:pd.DataFrame):
         print(f"file: {df.iloc[0]['Symbol']}.csv not founded so created")
 
 
-def main():
-    with open("Symbols.txt",'r') as f:
+def codal_monthly_link_grabber(symbol_file):
+    with open(symbol_file,'r') as f:
         for symbol in f.readlines():
             time.sleep(3)
             df = symbol_links_grabber(symbol.strip())
@@ -76,5 +76,3 @@ def main():
             data = links_to_file(df)
 
 
-if ( __name__ == "__main__" ):
-    main()
