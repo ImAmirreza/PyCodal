@@ -65,13 +65,13 @@ def links_to_file(df:pd.DataFrame):
         print(f"file: {df.iloc[0]['Symbol']}.csv not founded so created")
 
 
-def codal_monthly_link_grabber(symbol_file):
-    with open(symbol_file,'r') as f:
-        for symbol in f.readlines():
+def codal_monthly_link_grabber(symbol_file:str = "All_Symbols.csv"):
+    symbols = pd.read_csv(Path("Data")/Path(symbol_file))
+    for _,symbol in symbols.iterrows():
             time.sleep(3)
-            df = symbol_links_grabber(symbol.strip())
+            df = symbol_links_grabber(symbol["Symbol"].strip())
             if len(df)==0:
-                print(f"Some problem occured when scraping {symbol} data")
+                print(f"Some problem occured when scraping {symbol['Symbol']} data")
                 continue
             data = links_to_file(df)
 
