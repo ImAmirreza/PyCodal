@@ -196,7 +196,7 @@ def download_link_as_json(update:bool=False):
                     logger.error("somthing is wrong 13",exc_info=True)
 
 
-def remove_duplicate_files(folder_path:str):
+def remove_duplicate_files(folder_path:str="Data\\raw_json"):
     """
     Removes duplicate json files which have same name but differrent ID
 
@@ -223,6 +223,7 @@ def remove_duplicate_files(folder_path:str):
 
 
 def transform_json_to_csv():
+    global total_data
     for file in Path("Data/raw_json").glob("**/*"):
         if not file.is_file():
             continue
@@ -237,6 +238,8 @@ def transform_json_to_csv():
     total_data.to_csv("TotalData.csv")
 
 
+
+transform_json_to_csv()
 
 
 # remove_duplicate_files("Data\\raw_json")
