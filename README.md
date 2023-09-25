@@ -1,5 +1,10 @@
 # PyCodal
 
+![photo_2023-09-20_13-03-40](https://github.com/ImAmirreza/PyCodal/assets/32880236/b1474ea3-99e9-4268-83fa-63ebcb1e27e1)
+
+![photo_2023-09-25_16-57-32](https://github.com/ImAmirreza/PyCodal/assets/32880236/3c15f53a-11c0-4bf6-b8b9-d711df7943cc)
+
+---
 This repository contains a Python web scraping project aimed at extracting fundamental data from the Codal website, which provides valuable information about the Tehran Stock Market. The fundamental data includes financial statements, balance sheets, income statements, and other relevant financial information for various companies listed on the Tehran Stock Market.
 
 ### Objective
@@ -21,7 +26,8 @@ To use this project, follow these steps:
 Please note that web scraping may be subject to certain legal restrictions or terms of service specified by the Codal website. Ensure that you comply with the website's terms and conditions and use this project responsibly.
 
 ### Contribution
-Contributions to this project are welcome! If you have any ideas, bug fixes, or improvements, feel free to submit a pull request. Please ensure that any code changes adhere to the project's coding conventions and maintain a high level of code quality.
+Contributions to this project are welcome! If you have any ideas, bug
+fixes, or improvements, feel free to submit a pull request. Please ensure that any code changes adhere to the project's coding conventions and maintain a high level of code quality.
 
 ### License
 This project is licensed under the MIT License. You are free to modify, distribute, and use the code for both personal and commercial purposes.
