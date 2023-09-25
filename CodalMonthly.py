@@ -76,3 +76,9 @@ def codal_monthly_link_grabber(symbol_file:str = "All_Symbols.csv"):
             data = links_to_file(df)
 
 
+def codal_monthly_link_grabber(symbol_name:str,update:bool):
+    df = symbol_links_grabber(symbol=symbol_name.strip())
+    if len(df)==0:
+        print(f"Some problem occured when scraping {symbol_name} data")
+        return
+    data = links_to_file(df)
