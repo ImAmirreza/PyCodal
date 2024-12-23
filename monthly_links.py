@@ -16,7 +16,10 @@ def get_report_metadata(symbol:str,pagenumber:int=1):
         files = []
         for entry in os.scandir(f"Data/{symbol}"):
             if entry.is_file() and not "Total" in entry.path:
-                files.append(entry.path.split("_")[1].split(".")[0])
+                try:
+                    files.append(entry.path.split("_")[1].split(".")[0])
+                except Exception as e:
+                    print(e)
         for letter in data["Letters"]:
             match = re.search(r"منتهی به\s+(\d{4}/\d{2}/\d{2})", letter["Title"])
             if match:

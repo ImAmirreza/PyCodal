@@ -13,14 +13,15 @@ def get_html(url):
 def get_json(url):
     """Extracts a JSON string from the HTML response using a regular expression and parses it into a Python object."""
     html_source = get_html(url)
-    pattern = r"var datasource = (.*?);"
+    pattern = r"var datasource = (.*?)</script>"
     match = re.search(pattern, html_source, re.DOTALL)
     if match:
-        json_string = match.group(1).strip()
+        json_string = match.group(1).strip().replace(";","")
         try:
             data = json.loads(json_string)
         except json.JSONDecodeError as e:
             print(f"Failed to parse JSON: {e}")
+            print(json_string)
             return None
     else:
         print("No match found.")
@@ -32,6 +33,9 @@ def get_monthly_data(url, symbol):
     data = get_json(url)
     if data is None:
         return
+    if "Investment" in data["title_En"]:
+        print("For now this tools is not for Investemt companies")
+        raise NotImplementedError("Investment companies not supported")
     filename = f"Data/{symbol}/{data['sheets'][0]['title_En']}_{data['periodEndToDate'].replace('/', '-')}.json"
     with open(filename, "w") as f:
         json.dump(data, f)

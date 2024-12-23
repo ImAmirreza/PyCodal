@@ -88,7 +88,7 @@ def plot_monthly_data(df_pivot, symbol, show=False):
     if show:
         plt.show()
     else:
-        plt.savefig(f'{symbol}/Monthly.png')
+        plt.savefig(f'Data/{symbol}/Monthly.png')
 
 
 def calculate_and_plot_quarterly_data(df, symbol,show=False):
